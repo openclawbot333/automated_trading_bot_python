@@ -75,14 +75,27 @@ for i in range(2, len(h1_index)-2):
             fresh_low = None
             fresh_low_time = None
 
-    # Sweep check (same candle): wick beyond + close back in
+    # Sweep check: allow confirmation on same or next H1 candle close
     sweep = None
+    sweep_level = None
+
+    # same candle confirmation
     if fresh_high is not None and row["High"] > fresh_high and row["Close"] < fresh_high:
         sweep = "short"
         sweep_level = fresh_high
     if fresh_low is not None and row["Low"] < fresh_low and row["Close"] > fresh_low:
         sweep = "long"
         sweep_level = fresh_low
+
+    # next candle confirmation (look back one candle)
+    if sweep is None and i > 0:
+        prev = h1.iloc[i-1]
+        if fresh_high is not None and prev["High"] > fresh_high and row["Close"] < fresh_high:
+            sweep = "short"
+            sweep_level = fresh_high
+        if fresh_low is not None and prev["Low"] < fresh_low and row["Close"] > fresh_low:
+            sweep = "long"
+            sweep_level = fresh_low
 
     if sweep is None:
         continue

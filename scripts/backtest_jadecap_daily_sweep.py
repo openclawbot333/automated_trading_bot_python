@@ -35,11 +35,13 @@ h1["swing_low"] = (h1["Low"] < h1["Low"].shift(1)) & (h1["Low"] < h1["Low"].shif
 adx = ADXIndicator(h1["High"], h1["Low"], h1["Close"], window=14)
 h1["adx"] = adx.adx()
 
-# Helper: latest fresh swing level
+# Helper: latest fresh swing level (allow one touch)
 fresh_high = None
 fresh_low = None
 fresh_high_time = None
 fresh_low_time = None
+high_touches = 0
+low_touches = 0
 
 trades = []
 
@@ -59,21 +61,27 @@ for i in range(2, len(h1_index)-2):
     if row["swing_high"]:
         fresh_high = row["High"]
         fresh_high_time = t
+        high_touches = 0
     if row["swing_low"]:
         fresh_low = row["Low"]
         fresh_low_time = t
+        low_touches = 0
 
-    # If level has been traded through after formation, invalidate
+    # Allow one touch; invalidate after 2+ touches or full trade-through
     if fresh_high is not None:
-        recent_high = h1.loc[fresh_high_time:t]["High"].max()
-        if recent_high > fresh_high:
+        if row["High"] >= fresh_high:
+            high_touches += 1
+        if high_touches >= 2 or row["High"] > fresh_high:
             fresh_high = None
             fresh_high_time = None
+            high_touches = 0
     if fresh_low is not None:
-        recent_low = h1.loc[fresh_low_time:t]["Low"].min()
-        if recent_low < fresh_low:
+        if row["Low"] <= fresh_low:
+            low_touches += 1
+        if low_touches >= 2 or row["Low"] < fresh_low:
             fresh_low = None
             fresh_low_time = None
+            low_touches = 0
 
     # Sweep check: allow confirmation on same or next H1 candle close
     sweep = None

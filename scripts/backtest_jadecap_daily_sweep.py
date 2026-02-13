@@ -142,8 +142,8 @@ for i in range(2, len(h1_index)-2):
                 if ob.empty:
                     continue
                 ob_high = ob["High"].iloc[-1]
-                # retest within next 12 candles
-                future = m5_window.loc[tt:tt + pd.Timedelta(minutes=60)].head(12)
+                # retest within next 24 candles
+                future = m5_window.loc[tt:tt + pd.Timedelta(minutes=120)].head(24)
                 retest = future[future["High"] >= ob_high]
                 if retest.empty:
                     continue
@@ -168,7 +168,7 @@ for i in range(2, len(h1_index)-2):
                 if ob.empty:
                     continue
                 ob_low = ob["Low"].iloc[-1]
-                future = m5_window.loc[tt:tt + pd.Timedelta(minutes=60)].head(12)
+                future = m5_window.loc[tt:tt + pd.Timedelta(minutes=120)].head(24)
                 retest = future[future["Low"] <= ob_low]
                 if retest.empty:
                     continue

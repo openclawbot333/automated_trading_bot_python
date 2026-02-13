@@ -1,8 +1,7 @@
 ,0
-trades,0
-wins,0
-losses,0
-win_rate,0
-total_pnl,0
-avg_pnl,0
-note,No trades matched rules in this date range
+trades,18.0
+wins,6.0
+losses,12.0
+win_rate,0.3333333333333333
+total_pnl,61.0
+avg_pnl,3.388888888888889

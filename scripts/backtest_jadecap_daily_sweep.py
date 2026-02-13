@@ -83,25 +83,25 @@ for i in range(2, len(h1_index)-2):
             fresh_low_time = None
             low_touches = 0
 
-    # Sweep check: allow confirmation on same or next H1 candle close
+    # Sweep check: allow touch + close back in range (same or next H1 candle)
     sweep = None
     sweep_level = None
 
     # same candle confirmation
-    if fresh_high is not None and row["High"] > fresh_high and row["Close"] < fresh_high:
+    if fresh_high is not None and row["High"] >= fresh_high and row["Close"] < fresh_high:
         sweep = "short"
         sweep_level = fresh_high
-    if fresh_low is not None and row["Low"] < fresh_low and row["Close"] > fresh_low:
+    if fresh_low is not None and row["Low"] <= fresh_low and row["Close"] > fresh_low:
         sweep = "long"
         sweep_level = fresh_low
 
     # next candle confirmation (look back one candle)
     if sweep is None and i > 0:
         prev = h1.iloc[i-1]
-        if fresh_high is not None and prev["High"] > fresh_high and row["Close"] < fresh_high:
+        if fresh_high is not None and prev["High"] >= fresh_high and row["Close"] < fresh_high:
             sweep = "short"
             sweep_level = fresh_high
-        if fresh_low is not None and prev["Low"] < fresh_low and row["Close"] > fresh_low:
+        if fresh_low is not None and prev["Low"] <= fresh_low and row["Close"] > fresh_low:
             sweep = "long"
             sweep_level = fresh_low
 
@@ -137,25 +137,19 @@ for i in range(2, len(h1_index)-2):
                 continue
             bos_level = last_swing_low.iloc[-1]
             if r["Low"] < bos_level:
-                # Order block = last bullish candle before BOS
-                ob = prev_swings[prev_swings["Close"] > prev_swings["Open"]].tail(1)
-                if ob.empty:
-                    continue
-                ob_high = ob["High"].iloc[-1]
-                # retest within next 24 candles
+                # Relaxed: ignore breaker requirement; use simple BOS + retest level
+                retest_level = bos_level
                 future = m5_window.loc[tt:tt + pd.Timedelta(minutes=120)].head(24)
-                retest = future[future["High"] >= ob_high]
+                retest = future[future["High"] >= retest_level]
                 if retest.empty:
                     continue
                 entry_time = retest.index[0]
-                entry = ob_high
-                # breaker = last swing high before BOS
-                last_sw_high = last_swing_high.iloc[-1] if not last_swing_high.empty else ob_high
+                entry = retest_level
                 adx_val = h1.loc[t]["adx"]
                 if adx_val < 20:
                     stop = h1.loc[t]["High"]  # conservative
                 else:
-                    stop = last_sw_high  # aggressive
+                    stop = last_swing_high.iloc[-1] if not last_swing_high.empty else entry
                 risk = stop - entry
                 target = entry - 2 * risk
                 break
@@ -164,22 +158,18 @@ for i in range(2, len(h1_index)-2):
                 continue
             bos_level = last_swing_high.iloc[-1]
             if r["High"] > bos_level:
-                ob = prev_swings[prev_swings["Close"] < prev_swings["Open"]].tail(1)
-                if ob.empty:
-                    continue
-                ob_low = ob["Low"].iloc[-1]
+                retest_level = bos_level
                 future = m5_window.loc[tt:tt + pd.Timedelta(minutes=120)].head(24)
-                retest = future[future["Low"] <= ob_low]
+                retest = future[future["Low"] <= retest_level]
                 if retest.empty:
                     continue
                 entry_time = retest.index[0]
-                entry = ob_low
-                last_sw_low = last_swing_low.iloc[-1] if not last_swing_low.empty else ob_low
+                entry = retest_level
                 adx_val = h1.loc[t]["adx"]
                 if adx_val < 20:
                     stop = h1.loc[t]["Low"]
                 else:
-                    stop = last_sw_low
+                    stop = last_swing_low.iloc[-1] if not last_swing_low.empty else entry
                 risk = entry - stop
                 target = entry + 2 * risk
                 break

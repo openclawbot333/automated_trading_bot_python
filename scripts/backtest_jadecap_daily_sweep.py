@@ -5,7 +5,7 @@ from ta.trend import ADXIndicator
 from datetime import datetime
 
 SYMBOL = "ES=F"
-START = "2026-01-29"
+START = "2026-01-12"
 END = "2026-02-13"  # inclusive end for yf
 
 # Fetch 5m data

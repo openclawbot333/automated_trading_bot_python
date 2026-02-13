@@ -11,20 +11,19 @@ Daily Sweep Protocol: (1) plot fresh H1 swing points at 8:00 AM, (2) require H1 
 
 ## Phase II — The Filter (Hourly Closure Rule)
 - A sweep alone is **not** a trade.
-- Valid only when the **H1 candle body closes back inside the range** after the sweep.
+- Valid when price **touches/raids** the level and the **H1 candle body closes back inside the range** (same candle or next candle).
 - A sweep without closure = **volatility** → **no entry**.
 - **Ignore 1m/5m/15m** until H1 confirms.
 
-## Phase III — Engagement (M5 Trigger)
+## Phase III — Engagement (M5 Trigger) — Relaxed
 - After H1 confirmation, drop to **M5**.
 - **Entry model (bearish example; invert for bullish):**
   1) Sweep (liquidity raid)
-  2) Market structure shift (BOS)
-  3) Order block + breaker alignment
-  4) **Enter on alignment / retest**
+  2) **Market structure shift (BOS)**
+  3) **Enter on retest of the BOS level** (breaker/OB alignment optional)
 
 ## Risk Protocol
-- **Standard stop:** above the structure that confirmed the entry (above breaker / OB for shorts; below for longs).
+- **Standard stop:** above the structure that confirmed the entry (above BOS retest level for shorts; below for longs).
 - **Chop / PM session (1:00–4:00 PM):** use **H1 high/low stop** (wider stop).
 - **Target:** fixed **2R**.
 - **Two‑bullet rule:** max **2 attempts/day** (if AM fails, allow exactly one more attempt).

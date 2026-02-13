@@ -172,7 +172,7 @@ for i in range(2, len(h1_index)-2):
     exit_price = None
     outcome = None
 
-    # time exits: partial @ 11:30, exit @ 12:00
+    # time exits: risk off at 11:00
     for tt, rr in data_after.iterrows():
         if sweep == "short":
             if rr["High"] >= stop:
@@ -196,15 +196,9 @@ for i in range(2, len(h1_index)-2):
                 exit_price = target
                 outcome = "target"
                 break
-        # time exits
-        if tt.time() >= pd.Timestamp("11:30").time() and outcome is None:
-            # take partial (ignored in simple PnL); move stop to BE
+        # risk off at 11:00: move stop to BE
+        if tt.time() >= pd.Timestamp("11:00").time() and outcome is None:
             stop = entry
-        if tt.time() >= pd.Timestamp("12:00").time() and outcome is None:
-            exit_time = tt
-            exit_price = rr["Close"]
-            outcome = "time"
-            break
 
     if exit_time is None:
         continue

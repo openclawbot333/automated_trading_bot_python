@@ -1,7 +1,7 @@
 # jadecap daily sweep
 
 ## Overview
-Daily Sweep Protocol: (1) plot fresh H1 swing points at 8:00 AM, (2) require H1 candle **body close** back in range after a sweep, (3) execute on M5 with order‑block/breaker alignment, 2R target, and **risk off at 11:00 AM**.
+Daily Sweep Protocol: (1) plot fresh H1 swing points at 8:00 AM, (2) require H1 candle **body close** back in range after a sweep, (3) execute on M5 with retest entry, partials at +10 MES points, final at 2R, and **risk off at 11:00 AM**.
 
 ## Phase I — Reconnaissance (08:00 AM ET)
 - Work **only on the H1 chart**.
@@ -23,9 +23,13 @@ Daily Sweep Protocol: (1) plot fresh H1 swing points at 8:00 AM, (2) require H1 
   3) **Enter on retest of the BOS level** (breaker/OB alignment optional)
 
 ## Risk Protocol
+- **Instrument:** MES (Micro E-mini S&P)
+- **Position size:** 10 contracts
 - **Standard stop:** above the structure that confirmed the entry (above BOS retest level for shorts; below for longs).
 - **Chop / PM session (1:00–4:00 PM):** use **H1 high/low stop** (wider stop).
-- **Target:** fixed **2R**.
+- **Targets:**
+  - Take **partial (5 contracts)** at **+10 MES points**
+  - Take **remaining (5 contracts)** at **final 2R target**
 - **Two‑bullet rule:** max **2 attempts/day** (if AM fails, allow exactly one more attempt).
 
 ## Exit Protocols

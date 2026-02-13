@@ -1,37 +1,45 @@
 # jadecap daily sweep
 
 ## Overview
-Daily Sweep is a three‑step strategy: mark prior swing points, wait for hourly confirmation, then execute on the 5‑minute chart with defined risk and time‑based exits.
+Daily Sweep is a three‑step strategy: (1) mark H1 swing points (“tripwires”), (2) wait for an H1 close back in range after a sweep, (3) execute on M5 with an order‑block/breaker entry, 2R target, and time‑based risk management.
 
-## Step 1 — Plot Swing Points (8:00–8:30 AM ET)
-- Mark **hourly swing points** from the previous day and the hours leading up to 8:00 AM (London/Asia sessions).
-- **Only mark swing points not yet traded through.**
-- If price is trading beyond the previous day’s swing highs, use the **next most recent high from the day before**.
-- Expected time: **5–10 minutes** across markets.
+## Step 1 — Plot Swing Points (7:00–8:00 AM ET)
+- Work **only on the 1H chart**.
+- Mark **hourly swing points** from the previous day and the sessions leading up to 8:00 AM (Asia/London).
+- **Only mark levels that have NOT been traded through** (fresh liquidity).
+- If the prior day’s range is broken, **look back to the next most recent day** for fresh swing highs/lows.
+- These horizontal “tripwires” are **the only places you are allowed to trade**.
+- Keep this step quick: **5–10 minutes max**.
 
-## Step 2 — Confirmation Filter (Hourly Close Rule)
-- **Do not enter on a raid alone.**
-- Wait for the **hourly candle to close back inside the range** after sweeping a swing high/low.
-- **No lower‑timeframe execution** until the hourly candle closes.
+## Step 2 — Confirmation Filter (Rule of Closure)
+- **No front‑running.** A sweep alone is not a trade.
+- Wait for the **1H candle to close back inside the range** after sweeping a swing high/low.
+- If price **breaks out and does not close back in range**, it is **invalid** → **no trade**.
+- **Do not drop to lower timeframes** until the H1 close confirms the sweep.
 
-## Step 3 — 5‑Minute Execution
-- After hourly confirmation, drop to **5‑minute** chart.
-- **Entry model:**
-  - Bearish order block (series of up‑close candles) followed by a **break below the low**, or
-  - A **breaker** structure aligning with the sweep rejection.
-- **Stop‑loss:**
-  - Default: above the breaker or logical high.
-  - If choppy/sideways: **use higher‑timeframe stop** (e.g., above hourly high) for wiggle room.
-- **Target:** **2R** (2:1 reward‑to‑risk).
-- **Time exits:** consider partials or moving stops into the **11:00 AM–12:00 PM** lunch window.
+## Step 3 — M5 Execution
+- After H1 confirmation, drop to **5‑minute** chart for entry.
+- **Entry model (bearish example; invert for bullish):**
+  1) Break of local market structure on M5
+  2) Formation of a **bearish order block**
+  3) **Alignment with a breaker**
+  4) **Trigger:** enter **on retest** of the order block
+- **Stop‑loss options:**
+  - **Aggressive:** above the M5 breaker
+  - **Conservative:** above the H1 swing high (preferred in chop)
+- **Target:** **2R** (2:1 reward‑to‑risk)
+- **Time management:** reduce risk or take partials into the **11:00–12:00 PM** lunch window
 
 ## Risk & Limits
-- **Max attempts per day:** 2 (if initial attempt loses, limit to two total attempts).
-- **Risk:** consistent position sizing (default 1 contract per overall model).
+- **Two‑bullet rule:** max **2 attempts per day**
+  - If AM fails, you may try PM
+  - If PM fails, **walk away**
+- **PM session adjustment (1:00–4:00 PM):** if morning was choppy or a loss, **do not trust tight M5 stops**; use **H1 stop** instead.
 
 ## Example Scenarios
-- **Perfect setup:** 9:00 AM hourly candle raids a swing high and closes back in range → 10:00 AM 5‑min bearish order block + breaker → short to 2R.
-- **Choppy morning:** first trade loses → limit to two attempts; in PM session (1:00–4:00 PM), widen stop above hourly high.
+- **Perfect setup:** 9:00 AM H1 candle raids a swing high and closes back in range → 9:55–10:00 AM M5 bearish order block + breaker → short to 2R.
+- **Choppy morning:** first trade loses → limit to two attempts; in PM session, widen stop above H1 high.
 
 ## Notes
-- Consistency and repetition are emphasized; adjust stop‑loss placement based on market structure (tight FVG stops vs higher‑timeframe stops).
+- Steps 1–2 are **rigid rules**; Step 3 (execution/stop selection) requires experience and repetition.
+- Consistency > complexity.

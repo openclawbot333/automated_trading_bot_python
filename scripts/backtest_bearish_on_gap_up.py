@@ -161,8 +161,8 @@ for day in trading_days:
     if entry is None:
         continue
 
-    # Calculate stop and targets
-    stop = model.calculate_stop(sb)
+    # Calculate stop using recent swing high from full intraday data
+    stop = model.calculate_stop(sb, nq_m5, entry.get("time"))
     nwog_val = model.calculate_nwog(nq_d)
     ssl = model.find_sellside_liquidity(session_data)
 
@@ -172,17 +172,23 @@ for day in trading_days:
 
     targets = model.calculate_targets(entry["price"], nwog_val, ssl, gradient_levels)
 
-    size = model._calculate_position_size(entry["price"], stop)
+    micro_value = config.get("micro_contract_value", config.get("micro_point_value", 2.0))
+    max_micros = config.get("max_position_size", 3)
 
-    # Risk check
+    # Position sizing based on risk
     risk_points = stop - entry["price"]
-    risk_dollars = risk_points * size * model.micro_value
-    if risk_dollars > config["account_equity"] * config["max_risk_pct"]:
+    if risk_points <= 0:
+        continue
+    max_risk_dollars = config["account_equity"] * config["max_risk_pct"]
+    size = max(1, min(max_micros, int(max_risk_dollars / (risk_points * micro_value))))
+
+    risk_dollars = risk_points * size * micro_value
+    if risk_dollars > max_risk_dollars:
         continue
 
     # ---- Simulate trade ---- #
     entry_price = entry["price"]
-    entry_time = entry["time"]
+    entry_time = entry.get("time", session_data.index[-1])
     tp1 = targets["tp1"]
     tp2 = targets["tp2"]
     tp3 = targets["tp3"]
@@ -209,20 +215,20 @@ for day in trading_days:
             break
 
         # Check TP1
-        if remaining > (1 - tp1_pct + 0.01) and bar["Low"] <= tp1:
+        if tp1 is not None and remaining > (1 - tp1_pct + 0.01) and bar["Low"] <= tp1:
             pnl_pts = entry_price - tp1
             realized_pnl += pnl_pts * tp1_pct
             remaining -= tp1_pct
             be_stop = True  # Move stop to breakeven
 
         # Check TP2
-        if remaining > tp3_pct + 0.01 and bar["Low"] <= tp2:
+        if tp2 is not None and remaining > tp3_pct + 0.01 and bar["Low"] <= tp2:
             pnl_pts = entry_price - tp2
             realized_pnl += pnl_pts * tp2_pct
             remaining -= tp2_pct
 
         # Check TP3
-        if remaining > 0.01 and bar["Low"] <= tp3:
+        if tp3 is not None and remaining > 0.01 and bar["Low"] <= tp3:
             pnl_pts = entry_price - tp3
             realized_pnl += pnl_pts * remaining
             exit_time = idx
@@ -238,14 +244,14 @@ for day in trading_days:
         exit_time = after_entry.index[-1] if len(after_entry) > 0 else entry_time
         exit_reason = "session_end"
 
-    pnl_dollars = realized_pnl * size * model.micro_value
+    pnl_dollars = realized_pnl * size * micro_value
     daily_pnl.setdefault(day, 0)
     daily_pnl[day] += pnl_dollars
 
     trades.append({
         "day": day,
         "entry_time": entry_time,
-        "entry_type": entry["type"],
+        "entry_type": entry.get("reason", "unknown"),
         "entry_price": entry_price,
         "stop": stop,
         "tp1": tp1,

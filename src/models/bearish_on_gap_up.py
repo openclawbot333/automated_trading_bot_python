@@ -146,21 +146,29 @@ class BearishOnGapUpModel:
         return fvgs
 
     def find_entry(self, m1_data: pd.DataFrame, suspension_block: dict, fvgs: List[dict]) -> Optional[dict]:
-        """Entry when price rallies into FVG/CE and rejects."""
+        """Entry when price rallies into FVG/CE and rejects.
+
+        Scans all bars looking for the first rejection signal.
+        """
         if m1_data is None or m1_data.empty:
             return None
 
-        last = m1_data.iloc[-1]
-        last_high = float(last["High"])
-        last_close = float(last["Close"])
-
         ce = float(suspension_block.get("ce", np.nan))
-        if np.isfinite(ce) and last_high >= ce and last_close < ce:
-            return {"price": last_close, "type": "ce"}
 
-        for fvg in fvgs:
-            if last_high >= fvg["bottom"] and last_close < fvg["bottom"]:
-                return {"price": last_close, "type": "fvg"}
+        for i in range(len(m1_data)):
+            bar = m1_data.iloc[i]
+            bar_high = float(bar["High"])
+            bar_close = float(bar["Close"])
+            bar_time = m1_data.index[i]
+
+            # CE rejection: price wicks into CE but closes below
+            if np.isfinite(ce) and bar_high >= ce and bar_close < ce:
+                return {"price": bar_close, "type": "ce", "reason": "CE rejection", "time": bar_time}
+
+            # FVG rejection
+            for fvg in fvgs:
+                if bar_high >= fvg["top"] and bar_close < fvg["top"]:
+                    return {"price": bar_close, "type": "fvg", "reason": "FVG rejection", "time": bar_time}
 
         return None
 
@@ -168,9 +176,41 @@ class BearishOnGapUpModel:
     #  Risk / Targets
     # ------------------------------------------------------------------ #
 
-    def calculate_stop(self, suspension_block: dict) -> float:
-        """Hard stop above suspension block high + buffer."""
-        return float(suspension_block["high"]) + self.stop_buffer
+    def calculate_stop(self, suspension_block: dict, m1_data: pd.DataFrame = None, entry_time=None) -> float:
+        """Stop above recent swing high + buffer.
+
+        Uses the most recent 5-bar fractal swing high before the entry
+        as the stop level. Falls back to the full Suspension Block high
+        if no swing high is found.
+        """
+        fallback = float(suspension_block["high"]) + self.stop_buffer
+
+        if m1_data is None or m1_data.empty or entry_time is None:
+            return fallback
+
+        # Look at bars up to and including entry — use full intraday
+        # dataset (not just session) so we capture prior session swings
+        pre_entry = m1_data[m1_data.index <= entry_time]
+        if len(pre_entry) < 5:
+            return fallback
+
+        # Find swing highs: bar is higher than 2 bars on each side
+        swing_highs = []
+        for i in range(2, len(pre_entry) - 2):
+            h = float(pre_entry.iloc[i]["High"])
+            if (h > float(pre_entry.iloc[i-1]["High"]) and
+                h > float(pre_entry.iloc[i-2]["High"]) and
+                h > float(pre_entry.iloc[i+1]["High"]) and
+                h > float(pre_entry.iloc[i+2]["High"])):
+                swing_highs.append(h)
+
+        if not swing_highs:
+            # No fractal found — use the highest high in the last 20 bars
+            recent = pre_entry.tail(20)
+            return float(recent["High"].max()) + self.stop_buffer
+
+        # Use the most recent swing high
+        return swing_highs[-1] + self.stop_buffer
 
     def calculate_targets(
         self, entry_price: float, nwog: Optional[float], sellside_levels: List[float], gradient_levels: List[float]

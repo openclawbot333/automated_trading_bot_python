@@ -6,7 +6,7 @@ yfinance_symbol: NQ=F  # yfinance ticker for data
 es_symbol: ES=F        # ES for SMT divergence
 
 # Account & Risk
-account_equity: 10000
+account_equity: 25000
 max_risk_pct: 0.02          # 1-2% per trade
 max_daily_loss_pct: 0.05    # 3-5% daily max loss
 min_position_size: 1        # micro contracts
@@ -37,7 +37,7 @@ tp2_pct: 0.30   # 30% at sellside liquidity
 tp3_pct: 0.20   # 20% trailed to gradient levels
 
 # Session Times (America/New_York)
-session_start: "08:00"
+session_start: "09:30"
 session_end: "16:00"
 ny_open: "09:30"
 

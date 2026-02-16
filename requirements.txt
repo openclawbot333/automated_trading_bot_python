@@ -3,3 +3,9 @@ requests
 pandas
 fastapi
 uvicorn
+yfinance
+ta
+pyyaml
+yfinance
+ta
+pyyaml

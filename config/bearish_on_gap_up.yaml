@@ -1,0 +1,57 @@
+# Bearish on a Gap Up — NQ Model Configuration
+
+# Symbols
+symbol: NQH26          # Futures contract ticker
+yfinance_symbol: NQ=F  # yfinance ticker for data
+es_symbol: ES=F        # ES for SMT divergence
+
+# Account & Risk
+account_equity: 10000
+max_risk_pct: 0.02          # 1-2% per trade
+max_daily_loss_pct: 0.05    # 3-5% daily max loss
+min_position_size: 1        # micro contracts
+max_position_size: 3        # micro contracts
+micro_contract_value: 2.0   # $/point per micro NQ
+
+# Stop Loss
+stop_buffer_points: 7.5     # points above suspension block high
+
+# Fibonacci Gradient Levels
+fib_levels:
+  quadrants:
+    - 0.25
+    - 0.50
+    - 0.75
+  eighths:
+    - 0.125
+    - 0.25
+    - 0.375
+    - 0.50
+    - 0.625
+    - 0.75
+    - 0.875
+
+# Take Profit Allocation
+tp1_pct: 0.50   # 50% at NWOG
+tp2_pct: 0.30   # 30% at sellside liquidity
+tp3_pct: 0.20   # 20% trailed to gradient levels
+
+# Session Times (America/New_York)
+session_start: "08:00"
+session_end: "16:00"
+ny_open: "09:30"
+
+# Spring Filter
+spring_filter_adx_threshold: 20   # ADX below this = too choppy
+
+# SMT Divergence
+smt_lookback: 20                  # bars to look back for swing highs
+
+# FVG Detection
+fvg_min_gap_points: 1.0           # minimum gap size in points
+
+# Wick Significance
+wick_significance_ratio: 0.50     # lower wick must be > 50% of candle range
+
+# Equal Lows Detection
+equal_lows_tolerance: 2.0         # points tolerance for clustering equal lows
